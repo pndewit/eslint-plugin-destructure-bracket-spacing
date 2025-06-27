@@ -26,13 +26,9 @@ export default {
                   node,
                   loc: {start: token.loc.end, end: nextToken.loc.start},
                   message: 'There should be no space after \'{{tokenValue}}\'.',
-                  data: {
-                    tokenValue: token.value,
-                  },
-                  fix(fixer) {
-                    return fixer.removeRange([token.range[1], nextToken.range[0]])
-                  },
-                })
+                  data: {tokenValue: token.value},
+                  fix: fixer => fixer.removeRange([token.range[1], nextToken.range[0]]),
+                });
               }
 
               /**
@@ -47,13 +43,9 @@ export default {
                   node,
                   loc: {start: previousToken.loc.end, end: token.loc.start},
                   message: 'There should be no space before \'{{tokenValue}}\'.',
-                  data: {
-                    tokenValue: token.value,
-                  },
-                  fix(fixer) {
-                    return fixer.removeRange([previousToken.range[1], token.range[0]])
-                  },
-                })
+                  data: {tokenValue: token.value},
+                  fix: fixer => fixer.removeRange([previousToken.range[1], token.range[0]]),
+                });
               }
 
               /**
@@ -66,13 +58,9 @@ export default {
                   node,
                   loc: token.loc,
                   message: 'A space is required after \'{{tokenValue}}\'.',
-                  data: {
-                    tokenValue: token.value,
-                  },
-                  fix(fixer) {
-                    return fixer.insertTextAfter(token, ' ')
-                  },
-                })
+                  data: {tokenValue: token.value},
+                  fix: fixer => fixer.insertTextAfter(token, ' '),
+                });
               }
 
               /**
@@ -85,20 +73,21 @@ export default {
                   node,
                   loc: token.loc,
                   message: 'A space is required before \'{{tokenValue}}\'.',
-                  data: {
-                    tokenValue: token.value,
-                  },
-                  fix(fixer) {
-                    return fixer.insertTextBefore(token, ' ')
-                  },
-                })
+                  data: {tokenValue: token.value},
+                  fix: fixer => fixer.insertTextBefore(token, ' '),
+                });
               }
 
               /**
-               * Determines whether two tokens are on the same line
+               * Validates the spacing around array brackets
+               * @param beforeToken The token to check before the whitespace
+               * @param afterToken The token to check after the whitespace
+               * @param requiresSpace Boolean indicating whether a space is required
+               * @param reportFn Callback function reporting findings
                */
-              function onSameLine(left, right) {
-                return left.loc.end.line === right.loc.start.line;
+              function validateSpace(beforeToken, afterToken, requiresSpace, reportFn) {
+                const onSameLine = beforeToken.loc.end.line === afterToken.loc.start.line;
+                if (onSameLine && requiresSpace !== sourceCode.isSpaceBetween(beforeToken, afterToken)) reportFn();
               }
 
               /**
@@ -116,25 +105,17 @@ export default {
                 const isDestructure = node.type === 'ArrayPattern';
                 const isDefinition = node.type === 'ArrayExpression';
 
-                if (isDestructure && onSameLine(first, second)) {
-                  if (!sourceCode.isSpaceBetween(first, second))
-                    reportRequiredBeginningSpace(node, first);
-
-                  if (!sourceCode.isSpaceBetween(penultimate, last))
-                    reportRequiredEndingSpace(node, last);
-                }
-
-                if (isDefinition && first !== penultimate && onSameLine(penultimate, last)) {
-                  if (sourceCode.isSpaceBetween(penultimate, last))
-                    reportNoEndingSpace(node, last);
-
-                  if (sourceCode.isSpaceBetween(first, second))
-                    reportNoBeginningSpace(node, first);
+                if (isDestructure) {
+                  validateSpace(first, second, true, reportRequiredBeginningSpace.bind(this, node, first));
+                  validateSpace(penultimate, last, true, reportRequiredEndingSpace.bind(this, node, last));
+                } else if (isDefinition && first !== penultimate) {
+                  validateSpace(first, second, false, reportNoBeginningSpace.bind(this, node, first));
+                  validateSpace(penultimate, last, false, reportNoEndingSpace.bind(this, node, last));
                 }
               }
 
               /**
-               * Validates the spacing around array brackets
+               * Validates the spacing around object brackets
                * @param node The node we're checking for spacing
                */
               function validateObjectSpacing(node) {
@@ -148,38 +129,12 @@ export default {
                 const isDestructure = node.type === 'ObjectPattern';
                 const isDefinition = node.type === 'ObjectExpression';
 
-                if (isDestructure && onSameLine(first, second)) {
-                  if (!sourceCode.isSpaceBetween(first, second))
-                    reportRequiredBeginningSpace(node, first);
-
-                  if (!sourceCode.isSpaceBetween(penultimate, last))
-                    reportRequiredEndingSpace(node, last);
-                }
-
-                if (isDefinition && first !== penultimate && onSameLine(penultimate, last)) {
-                  if (sourceCode.isSpaceBetween(penultimate, last))
-                    reportNoEndingSpace(node, last);
-
-                  if (sourceCode.isSpaceBetween(first, second))
-                    reportNoBeginningSpace(node, first);
-                }
-              }
-
-              /**
-               * Determines if spacing in curly braces is valid.
-               * @param node The AST node to check.
-               * @param first The first token to check (should be the opening brace)
-               * @param second The second token to check (should be first after the opening brace)
-               * @param penultimate The penultimate token to check (should be last before closing brace)
-               * @param last The last token to check (should be closing brace)
-               */
-              function validateBraceSpacing(node, first, second, penultimate, last) {
-                if (onSameLine(first, second) && !sourceCode.isSpaceBetween(first, second)) {
-                  reportRequiredBeginningSpace(node, first);
-                }
-
-                if (onSameLine(penultimate, last) && !sourceCode.isSpaceBetween(penultimate, last)) {
-                  reportRequiredEndingSpace(node, last);
+                if (isDestructure) {
+                  validateSpace(first, second, true, reportRequiredBeginningSpace.bind(this, node, first));
+                  validateSpace(penultimate, last, true, reportRequiredEndingSpace.bind(this, node, last));
+                } else if (isDefinition && first !== penultimate) {
+                  validateSpace(first, second, false, reportNoBeginningSpace.bind(this, node, first));
+                  validateSpace(penultimate, last, false, reportNoEndingSpace.bind(this, node, last));
                 }
               }
 
@@ -191,17 +146,18 @@ export default {
                 if (!node.specifiers.length) return;
 
                 let firstSpecifier = node.specifiers[0];
-                const lastSpecifier = node.specifiers[node.specifiers.length - 1];
+                const [ lastSpecifier ] = node.specifiers.slice(-1);
 
                 if (lastSpecifier.type !== 'ImportSpecifier') return;
                 if (firstSpecifier.type !== 'ImportSpecifier') [ , firstSpecifier ] = node.specifiers;
 
-                const first = sourceCode.getFirstToken(firstSpecifier);
-                const last = sourceCode.getLastToken(lastSpecifier);
+                const first = sourceCode.getTokenBefore(firstSpecifier);
+                const last = sourceCode.getTokenAfter(lastSpecifier, {filter: token => token.type === 'Punctuator' && token.value !== ','});
                 const second = sourceCode.getTokenAfter(first);
                 const penultimate = sourceCode.getTokenBefore(last);
 
-                validateBraceSpacing(node, first, second, penultimate, last)
+                validateSpace(first, second, true, reportRequiredBeginningSpace.bind(this, node, first));
+                validateSpace(penultimate, last, true, reportRequiredEndingSpace.bind(this, node, last));
               }
 
               /**
@@ -209,16 +165,17 @@ export default {
                * @param node An ExportNamedDeclaration node to check.
                */
               function checkForExport(node) {
-                if (!node.specifiers.length) return
+                if (!node.specifiers.length) return;
 
                 const firstSpecifier = node.specifiers[0];
-                const lastSpecifier = node.specifiers[node.specifiers.length - 1];
-                const first = sourceCode.getFirstToken(firstSpecifier);
-                const last = sourceCode.getLastToken(lastSpecifier);
+                const [ lastSpecifier ] = node.specifiers.slice(-1);
+                const first = sourceCode.getTokenBefore(firstSpecifier);
+                const last = sourceCode.getTokenAfter(lastSpecifier, {filter: token => token.type === 'Punctuator' && token.value !== ','});
                 const second = sourceCode.getTokenAfter(first);
                 const penultimate = sourceCode.getTokenBefore(last);
 
-                validateBraceSpacing(node, first, second, penultimate, last)
+                validateSpace(first, second, false, reportNoBeginningSpace.bind(this, node, first));
+                validateSpace(penultimate, last, false, reportNoEndingSpace.bind(this, node, last));
               }
 
               return {

@@ -1,6 +1,6 @@
 {
   "name": "@pndewit/eslint-plugin-destructure-bracket-spacing",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ESLint plugin to enforce consistent spacing for destructuring and constructing array and object brackets",
   "type": "module",
   "main": "index.js",
