@@ -1,0 +1,33 @@
+{
+  "name": "@pndewit/eslint-plugin-destructure-bracket-spacing",
+  "version": "1.0.0",
+  "description": "ESLint plugin to enforce consistent spacing for destructuring and constructing array and object brackets",
+  "type": "module",
+  "main": "index.js",
+  "files": [
+    "CHANGELOG.md",
+    "index.js"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:pndewit/eslint-plugin-destructure-bracket-spacing.git"
+  },
+  "keywords": [
+    "eslint"
+  ],
+  "author": "Patrick de Wit <2362039+pndewit@users.noreply.github.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pndewit/eslint-plugin-destructure-bracket-spacing/issues"
+  },
+  "homepage": "https://github.com/pndewit/eslint-plugin-destructure-bracket-spacing#readme",
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.29.0"
+  }
+}
