@@ -95,8 +95,6 @@ export default {
                * @param node The node we're checking for spacing
                */
               function validateArraySpacing(node) {
-                if (!node.elements.length) return;
-
                 const first = sourceCode.getFirstToken(node);
                 const second = sourceCode.getFirstToken(node, 1);
                 const last = sourceCode.getLastToken(node);
@@ -108,7 +106,7 @@ export default {
                 if (isDestructure) {
                   validateSpace(first, second, true, reportRequiredBeginningSpace.bind(this, node, first));
                   validateSpace(penultimate, last, true, reportRequiredEndingSpace.bind(this, node, last));
-                } else if (isDefinition && first !== penultimate) {
+                } else if (isDefinition) {
                   validateSpace(first, second, false, reportNoBeginningSpace.bind(this, node, first));
                   validateSpace(penultimate, last, false, reportNoEndingSpace.bind(this, node, last));
                 }
@@ -119,8 +117,6 @@ export default {
                * @param node The node we're checking for spacing
                */
               function validateObjectSpacing(node) {
-                if (!node.properties.length) return;
-
                 const first = sourceCode.getFirstToken(node);
                 const second = sourceCode.getFirstToken(node, 1);
                 const last = sourceCode.getLastToken(node);
@@ -132,7 +128,7 @@ export default {
                 if (isDestructure) {
                   validateSpace(first, second, true, reportRequiredBeginningSpace.bind(this, node, first));
                   validateSpace(penultimate, last, true, reportRequiredEndingSpace.bind(this, node, last));
-                } else if (isDefinition && first !== penultimate) {
+                } else if (isDefinition) {
                   validateSpace(first, second, false, reportNoBeginningSpace.bind(this, node, first));
                   validateSpace(penultimate, last, false, reportNoEndingSpace.bind(this, node, last));
                 }
